@@ -264,7 +264,7 @@ def __main__():
     parser_check.set_defaults(func=check)
 
     parser_delete = subparsers.add_parser('delete', help='Delete a subject by subject code')
-    parser_delete.add_argument('--subject', '-s', help="Subject code (name or identifier)", required=True)
+    parser_delete.add_argument('--subject', '-s', help="subject code (name or identifier)", required=True)
     parser_delete.set_defaults(func=delete)
 
     args = parser.parse_args()
