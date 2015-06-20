@@ -3,6 +3,7 @@
 import numpy as np
 import argparse, cv2, sys, os, math, shutil
 from PIL import Image
+from time import sleep
 
 # CV compatibility stubs
 if 'IMREAD_GRAYSCALE' not in dir(cv2):
@@ -79,7 +80,7 @@ def enroll(args):
     if face_number:
         print("Enrolled subject: '{}', number of faces: {}".format(args.subject, face_number))
     else:
-        fatal("No faces detected for subject '{}'".format(args.subject))
+        print("No faces detected for subject '{}'".format(args.subject))
 
 
 def identify(args):
@@ -88,19 +89,62 @@ def identify(args):
 
 
 def list(args):
-    print("list")
+    ensure_subjects_directory()
+    subjects_directory = os.path.join(os.curdir, "subjects")
+    empty = True
+    for subject in os.listdir(subjects_directory):
+        if not subject.startswith('.'):
+            print subject
+            empty = False
+    if empty:
+        print "No subjects"
 
 
 def showall(args):
-    print("showall")
+    ensure_subjects_directory()
+    subjects_directory = os.path.join(os.curdir, "subjects")
+    empty = True
+    for subject in os.listdir(subjects_directory):
+        if not subject.startswith('.'):
+            empty = False
+            directory = os.path.join(subjects_directory, subject)
+            for the_file in os.listdir(directory):
+                file_path = os.path.join(directory, the_file)
+                image_pil = Image.open(file_path)
+                image = np.array(image_pil, 'uint8')
+                cv2.imshow(subject, image)
+                if args.timeout:
+                    sleep(args.timeout)
+                #cv2.waitKey(50)
+                cv2.destroyAllWindows()
+    if empty:
+        print "No subjects"
 
 
 def show(args):
-    print("show")
+    ensure_subjects_directory()
+    directory = os.path.join(os.curdir, "subjects", args.subject)
+    if os.path.exists(directory):
+        for the_file in os.listdir(directory):
+            file_path = os.path.join(directory, the_file)
+            image_pil = Image.open(file_path)
+            image = np.array(image_pil, 'uint8')
+            cv2.imshow(args.subject, image)
+            if args.timeout:
+                sleep(args.timeout)
+            #cv2.waitKey(50)
+            cv2.destroyAllWindows()
+    else:
+        print("No entry found")
 
 
 def check(args):
-    print("check")
+    ensure_subjects_directory()
+    directory = os.path.join(os.curdir, "subjects", args.subject)
+    if os.path.exists(directory):
+        print("Subject '{}' exists".format(args.subject))
+    else:
+        print("No entry found")
 
 
 def delete(args):
@@ -141,10 +185,12 @@ def __main__():
     parser_list.set_defaults(func=list)
 
     parser_showall = subparsers.add_parser('showall', help='Show faces of all enrolled subjects')
+    parser_showall.add_argument('--timeout', '-t', help="timeout in seconds between displays of faces", type=int, required=False)
     parser_showall.set_defaults(func=showall)
 
     parser_show = subparsers.add_parser('show', help='Show face of one enrolled subject')
     parser_show.add_argument('--subject', '-s', help="subject code (name or identifier)", required=True)
+    parser_show.add_argument('--timeout', '-t', help="timeout in seconds between displays of faces", type=int, required=False)
     parser_show.set_defaults(func=show)
 
     parser_check = subparsers.add_parser('check', help='Check if the subject with given code is entered')

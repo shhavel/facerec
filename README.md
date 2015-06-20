@@ -31,11 +31,11 @@ Get the codes of all enrolled subjects.
 
 Show faces of all enrolled subjects.
 
-    $ facerec showall
+    $ facerec showall --timeout 1
 
 Show face of one enrolled subject.
 
-    $ facerec show --subject "Dougal Mcguire"
+    $ facerec show --subject "Dougal Mcguire" --timeout 1
 
 Check if the subject with given code is entered.
 
@@ -51,14 +51,15 @@ General infotmation about OpenCV
 
 - http://www.objc.io/issues/21-camera-and-photos/face-recognition-with-opencv/
 - http://docs.opencv.org/2.4/modules/contrib/doc/facerec/index.html
+- http://docs.opencv.org/2.4/modules/objdetect/doc/cascade_classification.html
 
 Face detection and face recognition using OpenCV and Python
 
-- [http://superuser.com/questions/420885/is-there-a-face-recognition-command-line-tool/794147#794147](http://superuser.com/questions/420885/is-there-a-face-recognition-command-line-tool/794147#794147)
-- [https://github.com/wavexx/facedetect](https://github.com/wavexx/facedetect)
-- [http://www.mobileway.net/2015/02/14/install-opencv-for-python-on-mac-os-x/](http://www.mobileway.net/2015/02/14/install-opencv-for-python-on-mac-os-x/)
-- [https://www.google.com.ua/#q=opencv-python+cv2+face+comparison](https://www.google.com.ua/#q=opencv-python+cv2+face+comparison)
-- [http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_template_matching/py_template_matching.html](http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_template_matching/py_template_matching.html)
-- [http://hanzratech.in/2015/02/03/face-recognition-using-opencv.html](http://hanzratech.in/2015/02/03/face-recognition-using-opencv.html)
-- [https://realpython.com/blog/python/face-recognition-with-python/](https://realpython.com/blog/python/face-recognition-with-python/)
-- [https://realpython.com/blog/python/face-detection-in-python-using-a-webcam/](https://realpython.com/blog/python/face-detection-in-python-using-a-webcam/)
+- http://superuser.com/questions/420885/is-there-a-face-recognition-command-line-tool/794147#794147
+- https://github.com/wavexx/facedetect](https://github.com/wavexx/facedetect
+- http://www.mobileway.net/2015/02/14/install-opencv-for-python-on-mac-os-x/
+- https://www.google.com.ua/#q=opencv-python+cv2+face+comparison
+- http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_template_matching/py_template_matching.html
+- http://hanzratech.in/2015/02/03/face-recognition-using-opencv.html
+- https://realpython.com/blog/python/face-recognition-with-python/
+- https://realpython.com/blog/python/face-detection-in-python-using-a-webcam/
