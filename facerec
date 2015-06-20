@@ -5,6 +5,7 @@ import argparse, cv2, sys, os, math, shutil
 from PIL import Image
 from time import sleep
 
+
 # CV compatibility stubs
 if 'IMREAD_GRAYSCALE' not in dir(cv2):
     cv2.IMREAD_GRAYSCALE = 0L
@@ -16,6 +17,8 @@ PROFILES = {
     'HAAR_FRONTALFACE_ALT2': '/usr/share/opencv/haarcascades/haarcascade_frontalface_alt2.xml'
 }
 CV2_FLAGS = cv2.cv.CV_HAAR_DO_CANNY_PRUNING | cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT
+THRESHOLD = {'min': 20, 'max': 100}
+
 
 # Support functions
 def error(msg):
@@ -79,13 +82,63 @@ def enroll(args):
                 cv2.waitKey(50)
     if face_number:
         print("Enrolled subject: '{}', number of faces: {}".format(args.subject, face_number))
+        return 0
     else:
         print("No faces detected for subject '{}'".format(args.subject))
+        return 2
 
 
 def identify(args):
-    print("identify")
-    print(args)
+    if not os.path.exists(args.file):
+        fatal("File not found: '{}'".format(args.file))
+    ensure_subjects_directory()
+    subjects_directory = os.path.join(os.curdir, "subjects")
+    images = []
+    labels = []
+    all_subjects = {}
+    subject_number = 0
+    for subject in os.listdir(subjects_directory):
+        if not subject.startswith('.'):
+            subject_number += 1
+            all_subjects[subject_number] = subject
+            directory = os.path.join(subjects_directory, subject)
+            for the_file in os.listdir(directory):
+                file_path = os.path.join(directory, the_file)
+                image_pil = Image.open(file_path)
+                image = np.array(image_pil, 'uint8')
+                images.append(image)
+                labels.append(subject_number)
+                if args.debug:
+                    cv2.imshow(subject, image)
+                    cv2.waitKey(50)
+
+    recognizer = cv2.createLBPHFaceRecognizer()
+    recognizer.train(images, np.array(labels))
+
+    predict_image_pil = Image.open(args.file).convert('L')
+    predict_image = np.array(predict_image_pil, 'uint8')
+
+    faceCascade = cv2.CascadeClassifier(PROFILES['HAAR_FRONTALFACE_ALT2'])
+    side = math.sqrt(predict_image.size)
+    minlen = int(side / 20)
+    maxlen = int(side / 2)
+    faces = faceCascade.detectMultiScale(predict_image, 1.1, 4, CV2_FLAGS, (minlen, minlen), (maxlen, maxlen))
+
+    if len(faces):
+        (x, y, w, h) = faces[len(faces) - 1]
+        nbr_predicted, conf = recognizer.predict(predict_image[y: y + h, x: x + w])
+        if nbr_predicted and THRESHOLD['min'] < conf and conf < THRESHOLD['max']:
+            print "Subject '{}' is recognized with confidence {}".format(all_subjects[nbr_predicted], conf)
+            if args.debug:
+                cv2.imshow("Recognizing Face", predict_image[y: y + h, x: x + w])
+                cv2.waitKey(1000)
+            return 0
+        else:
+            print("Unable to recognize the face")
+            return 2
+    else:
+        print("Face was not detected in the original image")
+        return 2
 
 
 def list(args):
@@ -98,6 +151,9 @@ def list(args):
             empty = False
     if empty:
         print "No subjects"
+        return 2
+    else:
+        return 0
 
 
 def showall(args):
@@ -119,6 +175,9 @@ def showall(args):
                 cv2.destroyAllWindows()
     if empty:
         print "No subjects"
+        return 2
+    else:
+        return 0
 
 
 def show(args):
@@ -134,8 +193,10 @@ def show(args):
                 sleep(args.timeout)
             #cv2.waitKey(50)
             cv2.destroyAllWindows()
+        return 0
     else:
         print("No entry found")
+        return 2
 
 
 def check(args):
@@ -143,8 +204,10 @@ def check(args):
     directory = os.path.join(os.curdir, "subjects", args.subject)
     if os.path.exists(directory):
         print("Subject '{}' exists".format(args.subject))
+        return 0
     else:
         print("No entry found")
+        return 2
 
 
 def delete(args):
@@ -163,8 +226,10 @@ def delete(args):
         except OSError, e:
             fatal(e)
         print("Subject '{}' deleted".format(args.subject))
+        return 0
     else:
         print("No entry found")
+        return 2
 
 
 def __main__():
@@ -179,6 +244,7 @@ def __main__():
 
     parser_identify = subparsers.add_parser('identify', help='Get the identification of a subject given image of him')
     parser_identify.add_argument('file', help='path to image file')
+    parser_identify.add_argument('--debug', '-d', action="store_true", help='show faces of subjects')
     parser_identify.set_defaults(func=identify)
 
     parser_list = subparsers.add_parser('list', help='Get the codes of all enrolled subjects')
@@ -203,9 +269,7 @@ def __main__():
 
     args = parser.parse_args()
     check_profiles()
-    args.func(args)
-
-    return 0
+    return args.func(args)
 
 
 if __name__ == '__main__':

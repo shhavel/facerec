@@ -17,13 +17,26 @@ Installation in OS X:
 Enroll a new subject or update images of existing subject.
 Requires subject code (name or identifier) and paths to image files.
 
-    $ facerec enroll --subject "Dougal Mcguire" test/photos/dougal1.jpg test/photos/dougal2.jpg
-    $ facerec enroll --subject "Ted Crilly" test/photos/ted1.gif test/photos/ted2.jpg
+    $ facerec enroll --subject "Ted Crilly" test/photos/ted1.gif \
+        test/photos/ted2.jpg test/photos/ted3.jpg
+    $ facerec enroll --subject "Dougal Mcguire" test/photos/dougal1.jpg \
+        test/photos/dougal2.jpg test/photos/dougal3.gif
 
 Get the identification of a subject given one image of him.
 Returns subject code and confidence.
 
     $ facerec identify path/to/photo.jpg
+
+Examples:
+
+    $ facerec identify test/photos/photo1.jpg
+    Subject 'Ted Crilly' is recognized with confidence 98.2978159334
+    $ facerec identify test/photos/photo2.gif
+    Subject 'Dougal Mcguire' is recognized with confidence 78.5389835475
+    $ facerec identify test/photos/fridge.jpg
+    Face was not detected in the original image
+    $ facerec identify test/photos/larry.jpg
+    Unable to recognize the face
 
 Get the codes of all enrolled subjects.
 
@@ -49,16 +62,14 @@ Request to delete a subject by subject code.
 
 General infotmation about OpenCV
 
-- http://www.objc.io/issues/21-camera-and-photos/face-recognition-with-opencv/
 - http://docs.opencv.org/2.4/modules/contrib/doc/facerec/index.html
 - http://docs.opencv.org/2.4/modules/objdetect/doc/cascade_classification.html
 
 Face detection and face recognition using OpenCV and Python
 
 - http://superuser.com/questions/420885/is-there-a-face-recognition-command-line-tool/794147#794147
-- https://github.com/wavexx/facedetect](https://github.com/wavexx/facedetect
+- https://github.com/wavexx/facedetect
 - http://www.mobileway.net/2015/02/14/install-opencv-for-python-on-mac-os-x/
-- https://www.google.com.ua/#q=opencv-python+cv2+face+comparison
 - http://opencv-python-tutroals.readthedocs.org/en/latest/py_tutorials/py_imgproc/py_template_matching/py_template_matching.html
 - http://hanzratech.in/2015/02/03/face-recognition-using-opencv.html
 - https://realpython.com/blog/python/face-recognition-with-python/
