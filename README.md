@@ -58,6 +58,25 @@ Request to delete a subject by subject code.
 
     $ facerec delete --subject "Dougal Mcguire"
 
+Compare two images
+
+    $ facerec compare path/to/first_file.jpg path/to/second_file.jpg
+
+Or compare few images that contain one face with other image
+
+    $ facerec compare path/to/first_fileA.jpg path/to/first_fileB.jpg \
+        path/to/second_file.jpg
+
+Examples:
+
+    $ facerec compare test/photos/dougal3.gif test/photos/photo2.gif
+    Match with confidence '64.6777569774'
+    $ facerec compare test/photos/dougal2.jpg test/photos/photo2.gif
+    Not match
+    $ facerec compare test/photos/dougal2.jpg test/photos/dougal3.gif \
+        test/photos/photo2.gif
+    Match with confidence '64.6777569774'
+
 ## Lisks
 
 General infotmation about OpenCV

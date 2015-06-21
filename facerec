@@ -232,6 +232,65 @@ def delete(args):
         return 2
 
 
+def compare(args):
+    print(args)
+    for file in args.first_files:
+        if not os.path.exists(file):
+          fatal("File not found: '{}'".format(file))
+    if not os.path.exists(args.second_file):
+        fatal("File not found: '{}'".format(args.second_file))
+
+    faceCascade = cv2.CascadeClassifier(PROFILES['HAAR_FRONTALFACE_ALT2'])
+
+    face_number = 0
+    first_faces = []
+    for image_path in args.first_files:
+        image_pil = Image.open(image_path).convert('L')
+        image = np.array(image_pil, 'uint8')
+        side = math.sqrt(image.size)
+        minlen = int(side / 20)
+        maxlen = int(side / 2)
+        faces = faceCascade.detectMultiScale(image, 1.1, 4, CV2_FLAGS, (minlen, minlen), (maxlen, maxlen))
+        if len(faces):
+            (x, y, w, h) = faces[len(faces) - 1]
+            face_number += 1
+            first_face = image[y: y + h, x: x + w]
+            first_faces.append(first_face)
+            if args.debug:
+                cv2.imshow("First face", first_face)
+                cv2.waitKey(50)
+    if not face_number:
+        print("Face was not detected in the first files")
+        return 2
+
+    image_pil = Image.open(args.second_file).convert('L')
+    image = np.array(image_pil, 'uint8')
+    side = math.sqrt(image.size)
+    minlen = int(side / 20)
+    maxlen = int(side / 2)
+    faces = faceCascade.detectMultiScale(image, 1.1, 4, CV2_FLAGS, (minlen, minlen), (maxlen, maxlen))
+    if len(faces):
+        (x, y, w, h) = faces[len(faces) - 1]
+        second_face = image[y: y + h, x: x + w]
+        if args.debug:
+            cv2.imshow("Second face", second_face)
+            cv2.waitKey(50)
+    else:
+        print("Face was not detected in the second file")
+        return 2
+
+    recognizer = cv2.createLBPHFaceRecognizer()
+    recognizer.train(first_faces, np.array([1] * len(first_faces)))
+
+    nbr_predicted, conf = recognizer.predict(second_face)
+    if nbr_predicted and THRESHOLD['min'] < conf and conf < THRESHOLD['max']:
+        print "Match with confidence '{}'".format(conf)
+        return 0
+    else:
+        print("Not match")
+        return 2
+
+
 def __main__():
     parser = argparse.ArgumentParser(description='A simple face recognizer')
     subparsers = parser.add_subparsers()
@@ -266,6 +325,12 @@ def __main__():
     parser_delete = subparsers.add_parser('delete', help='Delete a subject by subject code')
     parser_delete.add_argument('--subject', '-s', help="subject code (name or identifier)", required=True)
     parser_delete.set_defaults(func=delete)
+
+    parser_compare = subparsers.add_parser('compare', help='Compare similarity of two images')
+    parser_compare.add_argument('first_files', type=str, nargs='+', help='images set with same face')
+    parser_compare.add_argument('second_file', help='comparable image')
+    parser_compare.add_argument('--debug', '-d', action="store_true", help='show faces')
+    parser_compare.set_defaults(func=compare)
 
     args = parser.parse_args()
     check_profiles()
