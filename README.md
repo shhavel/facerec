@@ -93,3 +93,11 @@ Face detection and face recognition using OpenCV and Python
 - http://hanzratech.in/2015/02/03/face-recognition-using-opencv.html
 - https://realpython.com/blog/python/face-recognition-with-python/
 - https://realpython.com/blog/python/face-detection-in-python-using-a-webcam/
+
+## Running tests
+
+Install [bats](https://github.com/sstephenson/bats) (on Mac OS X just run `brew install bats`).
+
+Run test suite:
+
+    $ bats test/facerec_test.bats
