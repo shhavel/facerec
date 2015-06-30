@@ -9,7 +9,6 @@ Installation in OS X:
     $ curl https://raw.githubusercontent.com/shhavel/facerec/master/facerec>/usr/local/bin/facerec;chmod +x /usr/local/bin/facerec
     $ brew tap homebrew/science;brew install opencv
     $ pip install numpy; pip install pillow
-    $ sed -i '' s,/usr/share/opencv/haarcascades/haarcascade_frontalface_alt2.xml,/usr/local/opt/opencv/share/OpenCV/haarcascades/haarcascade_frontalface_alt2.xml, /usr/local/bin/facerec
     $ export PYTHONPATH=/usr/local/lib/python2.7/site-packages:$PYTHONPATH
 
 ## Usage
@@ -100,4 +99,4 @@ Install [bats](https://github.com/sstephenson/bats) (on Mac OS X just run `brew 
 
 Run test suite:
 
-    $ bats test/facerec_test.bats
+    $ bats test

@@ -1,1 +1,3 @@
 subjects/**/*.jpg
+.DS_Store
+*.yml

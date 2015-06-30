@@ -1,47 +1,54 @@
 #!/usr/bin/env python
-
 import numpy as np
 import argparse, cv2, sys, os, math, shutil
 from PIL import Image
 from time import sleep
 
-
 # CV compatibility stubs
 if 'IMREAD_GRAYSCALE' not in dir(cv2):
     cv2.IMREAD_GRAYSCALE = 0L
 
-
 # Profiles
 PROFILES = {
-    #'HAAR_FRONTALFACE_ALT2': '/usr/local/opt/opencv/share/OpenCV/haarcascades/haarcascade_frontalface_alt2.xml'
-    'HAAR_FRONTALFACE_ALT2': '/usr/share/opencv/haarcascades/haarcascade_frontalface_alt2.xml'
+    'HAAR_FRONTALFACE_ALT2': '/usr/local/opt/opencv/share/OpenCV/haarcascades/haarcascade_frontalface_alt2.xml'
 }
 CV2_FLAGS = cv2.cv.CV_HAAR_DO_CANNY_PRUNING | cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT
 THRESHOLD = {'min': 20, 'max': 100}
-
 
 # Support functions
 def error(msg):
     sys.stderr.write("{}: error: {}\n".format(os.path.basename(sys.argv[0]), msg))
 
-
 def fatal(msg):
     error(msg)
     sys.exit(1)
-
 
 def check_profiles():
     for k, v in PROFILES.iteritems():
         if not os.path.exists(v):
             fatal("cannot load {} from {}".format(k, v))
 
-
 def ensure_subjects_directory():
     subjects_directory = os.path.join(os.curdir, "subjects")
     if not os.path.exists(subjects_directory):
         os.makedirs(subjects_directory)
 
+faceCascade = None
+def detect_faces(image_path):
+    global faceCascade
+    faceCascade = faceCascade or cv2.CascadeClassifier(PROFILES['HAAR_FRONTALFACE_ALT2'])
+    # Read the image and convert to grayscale
+    image_pil = Image.open(image_path).convert('L')
+    # Convert the image format into numpy array
+    image = np.array(image_pil, 'uint8')
+    # Detect the face in the image
+    side = math.sqrt(image.size)
+    minlen = int(side / 20)
+    maxlen = int(side / 2)
+    faces = faceCascade.detectMultiScale(image, 1.1, 4, CV2_FLAGS, (minlen, minlen), (maxlen, maxlen))
+    return faces, image
 
+# Enroll a new subject or update images of existing subject
 def enroll(args):
     ensure_subjects_directory()
     directory = os.path.join(os.curdir, "subjects", args.subject)
@@ -56,21 +63,12 @@ def enroll(args):
             except OSError, e:
                 fatal(e)
 
-    faceCascade = cv2.CascadeClassifier(PROFILES['HAAR_FRONTALFACE_ALT2'])
     for image_path in args.files:
         if not os.path.exists(image_path):
             fatal("File not found: '{}'".format(image_path))
     face_number = 0
     for image_path in args.files:
-        # Read the image and convert to grayscale
-        image_pil = Image.open(image_path).convert('L')
-        # Convert the image format into numpy array
-        image = np.array(image_pil, 'uint8')
-        # Detect the face in the image
-        side = math.sqrt(image.size)
-        minlen = int(side / 20)
-        maxlen = int(side / 2)
-        faces = faceCascade.detectMultiScale(image, 1.1, 4, CV2_FLAGS, (minlen, minlen), (maxlen, maxlen))
+        faces, image = detect_faces(image_path)
         # If face is detected, write the face image to the subject directory 
         if len(faces):
             (x, y, w, h) = faces[len(faces) - 1]
@@ -87,7 +85,7 @@ def enroll(args):
         print("No faces detected for subject '{}'".format(args.subject))
         return 2
 
-
+# Identify subject by image
 def identify(args):
     if not os.path.exists(args.file):
         fatal("File not found: '{}'".format(args.file))
@@ -140,7 +138,7 @@ def identify(args):
         print("Face was not detected in the original image")
         return 2
 
-
+# Get all subjects codes.
 def list(args):
     ensure_subjects_directory()
     subjects_directory = os.path.join(os.curdir, "subjects")
@@ -155,7 +153,7 @@ def list(args):
     else:
         return 0
 
-
+# Show all subjects images.
 def showall(args):
     ensure_subjects_directory()
     subjects_directory = os.path.join(os.curdir, "subjects")
@@ -179,7 +177,7 @@ def showall(args):
     else:
         return 0
 
-
+# Show subject
 def show(args):
     ensure_subjects_directory()
     directory = os.path.join(os.curdir, "subjects", args.subject)
@@ -198,7 +196,7 @@ def show(args):
         print("No entry found")
         return 2
 
-
+# Check if subject exists
 def check(args):
     ensure_subjects_directory()
     directory = os.path.join(os.curdir, "subjects", args.subject)
@@ -209,7 +207,7 @@ def check(args):
         print("No entry found")
         return 2
 
-
+# Delete subject
 def delete(args):
     ensure_subjects_directory()
     directory = os.path.join(os.curdir, "subjects", args.subject)
@@ -231,9 +229,8 @@ def delete(args):
         print("No entry found")
         return 2
 
-
+# Compare two images
 def compare(args):
-    print(args)
     for file in args.first_files:
         if not os.path.exists(file):
           fatal("File not found: '{}'".format(file))
@@ -245,12 +242,7 @@ def compare(args):
     face_number = 0
     first_faces = []
     for image_path in args.first_files:
-        image_pil = Image.open(image_path).convert('L')
-        image = np.array(image_pil, 'uint8')
-        side = math.sqrt(image.size)
-        minlen = int(side / 20)
-        maxlen = int(side / 2)
-        faces = faceCascade.detectMultiScale(image, 1.1, 4, CV2_FLAGS, (minlen, minlen), (maxlen, maxlen))
+        faces, image = detect_faces(image_path)
         if len(faces):
             (x, y, w, h) = faces[len(faces) - 1]
             face_number += 1
@@ -289,7 +281,6 @@ def compare(args):
     else:
         print("Not match")
         return 2
-
 
 def __main__():
     parser = argparse.ArgumentParser(description='A simple face recognizer')
@@ -335,7 +326,6 @@ def __main__():
     args = parser.parse_args()
     check_profiles()
     return args.func(args)
-
 
 if __name__ == '__main__':
     sys.exit(__main__())
