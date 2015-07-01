@@ -17,7 +17,7 @@ THRESHOLD = {'min': 20, 'max': 100}
 
 # Support functions
 def error(msg):
-    sys.stderr.write("{}: error: {}\n".format(os.path.basename(sys.argv[0]), msg))
+    sys.stderr.write("{0}: error: {1}\n".format(os.path.basename(sys.argv[0]), msg))
 
 def fatal(msg):
     error(msg)
@@ -26,7 +26,7 @@ def fatal(msg):
 def check_profiles():
     for k, v in PROFILES.iteritems():
         if not os.path.exists(v):
-            fatal("cannot load {} from {}".format(k, v))
+            fatal("cannot load {0} from {1}".format(k, v))
 
 def ensure_subjects_directory():
     subjects_directory = os.path.join(os.curdir, "subjects")
@@ -65,7 +65,7 @@ def enroll(args):
 
     for image_path in args.files:
         if not os.path.exists(image_path):
-            fatal("File not found: '{}'".format(image_path))
+            fatal("File not found: '{0}'".format(image_path))
     face_number = 0
     for image_path in args.files:
         faces, image = detect_faces(image_path)
@@ -79,16 +79,16 @@ def enroll(args):
                 cv2.imshow(args.subject, image[y: y + h, x: x + w])
                 cv2.waitKey(50)
     if face_number:
-        print("Enrolled subject: '{}', number of faces: {}".format(args.subject, face_number))
+        print("Enrolled subject: '{0}', number of faces: {1}".format(args.subject, face_number))
         return 0
     else:
-        print("No faces detected for subject '{}'".format(args.subject))
+        print("No faces detected for subject '{0}'".format(args.subject))
         return 2
 
 # Identify subject by image
 def identify(args):
     if not os.path.exists(args.file):
-        fatal("File not found: '{}'".format(args.file))
+        fatal("File not found: '{0}'".format(args.file))
     ensure_subjects_directory()
     subjects_directory = os.path.join(os.curdir, "subjects")
     images = []
@@ -126,7 +126,7 @@ def identify(args):
         (x, y, w, h) = faces[len(faces) - 1]
         nbr_predicted, conf = recognizer.predict(predict_image[y: y + h, x: x + w])
         if nbr_predicted and THRESHOLD['min'] < conf and conf < THRESHOLD['max']:
-            print "Subject '{}' is recognized with confidence {}".format(all_subjects[nbr_predicted], conf)
+            print "Subject '{0}' is recognized with confidence {1}".format(all_subjects[nbr_predicted], conf)
             if args.debug:
                 cv2.imshow("Recognizing Face", predict_image[y: y + h, x: x + w])
                 cv2.waitKey(1000)
@@ -201,7 +201,7 @@ def check(args):
     ensure_subjects_directory()
     directory = os.path.join(os.curdir, "subjects", args.subject)
     if os.path.exists(directory):
-        print("Subject '{}' exists".format(args.subject))
+        print("Subject '{0}' exists".format(args.subject))
         return 0
     else:
         print("No entry found")
@@ -223,7 +223,7 @@ def delete(args):
             os.removedirs(directory)
         except OSError, e:
             fatal(e)
-        print("Subject '{}' deleted".format(args.subject))
+        print("Subject '{0}' deleted".format(args.subject))
         return 0
     else:
         print("No entry found")
@@ -233,9 +233,9 @@ def delete(args):
 def compare(args):
     for file in args.first_files:
         if not os.path.exists(file):
-          fatal("File not found: '{}'".format(file))
+          fatal("File not found: '{0}'".format(file))
     if not os.path.exists(args.second_file):
-        fatal("File not found: '{}'".format(args.second_file))
+        fatal("File not found: '{0}'".format(args.second_file))
 
     faceCascade = cv2.CascadeClassifier(PROFILES['HAAR_FRONTALFACE_ALT2'])
 
@@ -276,7 +276,7 @@ def compare(args):
 
     nbr_predicted, conf = recognizer.predict(second_face)
     if nbr_predicted and THRESHOLD['min'] < conf and conf < THRESHOLD['max']:
-        print "Match with confidence '{}'".format(conf)
+        print "Match with confidence '{0}'".format(conf)
         return 0
     else:
         print("Not match")
