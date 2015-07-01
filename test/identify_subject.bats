@@ -18,6 +18,12 @@
     [ "$output" = "Subject 'Dougal Mcguire' is recognized with confidence 78.5389835475" ]
 }
 
+@test "Invoking identify with the --tap option returns only subject and confidence number divided with space" {
+    run ./facerec identify --dry test/photos/photo2.gif
+    [ "$status" = 0 ]
+    [ "$output" = "Dougal Mcguire 78.5389835475" ]
+}
+
 @test "Check that we cannot recognize face on the photo of fridge" {
     run ./facerec identify test/photos/fridge.jpg
     [ "$status" = 2 ]

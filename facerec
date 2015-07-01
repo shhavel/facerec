@@ -126,7 +126,10 @@ def identify(args):
         (x, y, w, h) = faces[len(faces) - 1]
         nbr_predicted, conf = recognizer.predict(predict_image[y: y + h, x: x + w])
         if nbr_predicted and THRESHOLD['min'] < conf and conf < THRESHOLD['max']:
-            print "Subject '{0}' is recognized with confidence {1}".format(all_subjects[nbr_predicted], conf)
+            if args.dry:
+                print "{0} {1}".format(all_subjects[nbr_predicted], conf)
+            else:
+                print "Subject '{0}' is recognized with confidence {1}".format(all_subjects[nbr_predicted], conf)
             if args.debug:
                 cv2.imshow("Recognizing Face", predict_image[y: y + h, x: x + w])
                 cv2.waitKey(1000)
@@ -294,6 +297,7 @@ def __main__():
 
     parser_identify = subparsers.add_parser('identify', help='Get the identification of a subject given image of him')
     parser_identify.add_argument('file', help='path to image file')
+    parser_identify.add_argument('--dry', action="store_true", help='output only subject and confidence number divided with space')
     parser_identify.add_argument('--debug', '-d', action="store_true", help='show faces of subjects')
     parser_identify.set_defaults(func=identify)
 
