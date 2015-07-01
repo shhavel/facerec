@@ -10,7 +10,7 @@ if 'IMREAD_GRAYSCALE' not in dir(cv2):
 
 # Profiles
 PROFILES = {
-    'HAAR_FRONTALFACE_ALT2': '/usr/local/opt/opencv/share/OpenCV/haarcascades/haarcascade_frontalface_alt2.xml'
+    'HAAR_FRONTALFACE_ALT2': '/usr/share/opencv/haarcascades/haarcascade_frontalface_alt2.xml'
 }
 CV2_FLAGS = cv2.cv.CV_HAAR_DO_CANNY_PRUNING | cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT
 THRESHOLD = {'min': 20, 'max': 100}

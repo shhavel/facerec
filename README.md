@@ -2,14 +2,39 @@
 
 A simple face recognition command line application using Python and OpenCV.
 
-## Installation
+## Install OpenCV-Python
+
+- [Linux installation](http://docs.opencv.org/doc/tutorials/introduction/linux_install/linux_install.html#linux-installation)
+- [Install OpenCV in CentOS](http://superuser.com/questions/678568/install-opencv-in-centos/725799#725799)
 
 Installation in OS X:
 
-    $ curl https://raw.githubusercontent.com/shhavel/facerec/master/facerec>/usr/local/bin/facerec;chmod +x /usr/local/bin/facerec
     $ brew tap homebrew/science;brew install opencv
-    $ pip install numpy; pip install pillow
-    $ export PYTHONPATH=/usr/local/lib/python2.7/site-packages:$PYTHONPATH
+
+## Add directory with OpenCV module to the PYTHONPATH
+
+    $ export PYTHONPATH=$PYTHONPATH:/usr/local/lib/python2.7/site-packages
+
+Specify directory with OpenCV module. It may be different.
+
+## Install python packages
+
+Use **easy_install**:
+
+    $ easy_install numpy; easy_install pillow; easy_install argparse
+
+or **pip**:
+
+    $ pip install numpy; pip install pillow; pip install argparse
+
+
+## Installation
+
+    $ curl https://raw.githubusercontent.com/shhavel/facerec/master/facerec>/usr/local/bin/facerec;chmod +x /usr/local/bin/facerec
+
+Change path to `haarcascade_frontalface_alt2.xml` if needed, e.g. in OS X:
+
+    $ sed -i '' s,/usr/share/opencv/haarcascades/haarcascade_frontalface_alt2.xml,/usr/local/opt/opencv/share/OpenCV/haarcascades/haarcascade_frontalface_alt2.xml, /usr/local/bin/facedetect
 
 ## Usage
 
