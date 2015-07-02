@@ -66,8 +66,15 @@
     run ./facerec delete --subject "Ted"
 }
 
-@test "Identify subject by several images" {
+@test "Identify subject by several images and show best match" {
     run ./facerec identify test/photos/ted2.jpg test/photos/photo1.jpg
     [ "$status" = 0 ]
     [ "$output" = "Subject 'Ted Crilly' is recognized with confidence 98.2978159334" ]
+}
+
+@test "Identify subject by several images and show all unique matches sorted by conf descending" {
+    run ./facerec identify --all test/photos/ted2.jpg test/photos/photo1.jpg test/photos/photo2.gif
+    [ "$status" = 0 ]
+    [ "${lines[0]}" = "Subject 'Ted Crilly' is recognized with confidence 98.2978159334" ]
+    [ "${lines[1]}" = "Subject 'Dougal Mcguire' is recognized with confidence 78.5389835475" ]
 }

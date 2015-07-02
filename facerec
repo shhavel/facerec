@@ -14,6 +14,7 @@ PROFILES = {
 }
 CV2_FLAGS = cv2.cv.CV_HAAR_DO_CANNY_PRUNING | cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT
 THRESHOLD = {'min': 4, 'max': 100}
+subjects_directory = None
 
 # Support functions
 def error(msg):
@@ -27,11 +28,6 @@ def check_profiles():
     for k, v in PROFILES.iteritems():
         if not os.path.exists(v):
             fatal("cannot load {0} from {1}".format(k, v))
-
-def ensure_subjects_directory():
-    subjects_directory = os.path.join(os.curdir, "subjects")
-    if not os.path.exists(subjects_directory):
-        os.makedirs(subjects_directory)
 
 faceCascade = None
 def detect_faces(image_path):
@@ -50,8 +46,7 @@ def detect_faces(image_path):
 
 # Enroll a new subject or update images of existing subject
 def enroll(args):
-    ensure_subjects_directory()
-    directory = os.path.join(os.curdir, "subjects", args.subject)
+    directory = os.path.join(subjects_directory, args.subject)
     if not os.path.exists(directory):
         os.makedirs(directory)
     else:
@@ -94,8 +89,6 @@ def identify(args):
         only = args.only.split(',')
     if not args.ignore is None:
         ignore = args.ignore.split(',')
-    ensure_subjects_directory()
-    subjects_directory = os.path.join(os.curdir, "subjects")
     images = []
     labels = []
     all_subjects = {}
@@ -132,11 +125,22 @@ def identify(args):
             if nbr_predicted and THRESHOLD['min'] < conf and conf < THRESHOLD['max']:
                 predictions.append((nbr_predicted, conf))
         if len(predictions):
-            nbr_predicted, conf = sorted(predictions, key=lambda p: p[1])[len(predictions) - 1]
-            if args.dry:
-                print "{0} {1}".format(all_subjects[nbr_predicted], conf)
+            sorted_predictions = sorted(predictions, key=lambda p: -p[1])
+            if args.all:
+                printed_nbrs = []
+                for nbr_predicted, conf in sorted_predictions:
+                    if not nbr_predicted in printed_nbrs:
+                        printed_nbrs.append(nbr_predicted)
+                        if args.dry:
+                            print "{0} {1}".format(all_subjects[nbr_predicted], conf)
+                        else:
+                            print "Subject '{0}' is recognized with confidence {1}".format(all_subjects[nbr_predicted], conf)
             else:
-                print "Subject '{0}' is recognized with confidence {1}".format(all_subjects[nbr_predicted], conf)
+                nbr_predicted, conf = sorted_predictions[0]
+                if args.dry:
+                    print "{0} {1}".format(all_subjects[nbr_predicted], conf)
+                else:
+                    print "Subject '{0}' is recognized with confidence {1}".format(all_subjects[nbr_predicted], conf)
         else:
             print("Unable to recognize the face")
             return 2
@@ -146,8 +150,6 @@ def identify(args):
 
 # Get all subjects codes.
 def list(args):
-    ensure_subjects_directory()
-    subjects_directory = os.path.join(os.curdir, "subjects")
     empty = True
     for subject in os.listdir(subjects_directory):
         if not subject.startswith('.'):
@@ -161,8 +163,6 @@ def list(args):
 
 # Show all subjects images.
 def showall(args):
-    ensure_subjects_directory()
-    subjects_directory = os.path.join(os.curdir, "subjects")
     empty = True
     for subject in os.listdir(subjects_directory):
         if not subject.startswith('.'):
@@ -185,8 +185,7 @@ def showall(args):
 
 # Show subject
 def show(args):
-    ensure_subjects_directory()
-    directory = os.path.join(os.curdir, "subjects", args.subject)
+    directory = os.path.join(subjects_directory, args.subject)
     if os.path.exists(directory):
         for the_file in os.listdir(directory):
             file_path = os.path.join(directory, the_file)
@@ -204,8 +203,7 @@ def show(args):
 
 # Check if subject exists
 def check(args):
-    ensure_subjects_directory()
-    directory = os.path.join(os.curdir, "subjects", args.subject)
+    directory = os.path.join(subjects_directory, args.subject)
     if os.path.exists(directory):
         print("Subject '{0}' exists".format(args.subject))
         return 0
@@ -215,8 +213,7 @@ def check(args):
 
 # Delete subject
 def delete(args):
-    ensure_subjects_directory()
-    directory = os.path.join(os.curdir, "subjects", args.subject)
+    directory = os.path.join(subjects_directory, args.subject)
     if os.path.exists(directory):
         for the_file in os.listdir(directory):
             file_path = os.path.join(directory, the_file)
@@ -295,6 +292,7 @@ def __main__():
     parser_enroll = subparsers.add_parser('enroll', help='Enroll a new subject or update images of existing subject')
     parser_enroll.add_argument('--subject', '-s', help="subject code (name or identifier)", required=True)
     parser_enroll.add_argument('files', type=str, nargs='+', help='paths to image files')
+    parser_enroll.add_argument('--storage', help="directory for keeping faces images", required=False)
     parser_enroll.add_argument('--debug', '-d', action="store_true", help='show faces of subjects')
     parser_enroll.set_defaults(func=enroll)
 
@@ -303,27 +301,34 @@ def __main__():
     parser_identify.add_argument('--only', '--within', type=str, help='identify only from specific subjects (comma separated list of codes)')
     parser_identify.add_argument('--ignore', '--exclude', type=str, help='ignore specific subjects (comma separated list of codes)')
     parser_identify.add_argument('--dry', action="store_true", help='output only subject and confidence number divided with space')
+    parser_identify.add_argument('--all', action="store_true", help='return all possible identifications')
+    parser_identify.add_argument('--storage', help="directory for keeping faces images", required=False)
     parser_identify.add_argument('--debug', '-d', action="store_true", help='show faces of subjects')
     parser_identify.set_defaults(func=identify)
 
     parser_list = subparsers.add_parser('list', help='Get the codes of all enrolled subjects')
+    parser_list.add_argument('--storage', help="directory for keeping faces images", required=False)
     parser_list.set_defaults(func=list)
 
     parser_showall = subparsers.add_parser('showall', help='Show faces of all enrolled subjects')
+    parser_showall.add_argument('--storage', help="directory for keeping faces images", required=False)
     parser_showall.add_argument('--timeout', '-t', help="timeout in seconds between displays of faces", type=int, required=False)
     parser_showall.set_defaults(func=showall)
 
     parser_show = subparsers.add_parser('show', help='Show face of one enrolled subject')
     parser_show.add_argument('--subject', '-s', help="subject code (name or identifier)", required=True)
+    parser_show.add_argument('--storage', help="directory for keeping faces images", required=False)
     parser_show.add_argument('--timeout', '-t', help="timeout in seconds between displays of faces", type=int, required=False)
     parser_show.set_defaults(func=show)
 
     parser_check = subparsers.add_parser('check', help='Check if the subject with given code is entered')
     parser_check.add_argument('--subject', '-s', help="subject code (name or identifier)", required=True)
+    parser_check.add_argument('--storage', help="directory for keeping faces images", required=False)
     parser_check.set_defaults(func=check)
 
     parser_delete = subparsers.add_parser('delete', help='Delete a subject by subject code')
     parser_delete.add_argument('--subject', '-s', help="subject code (name or identifier)", required=True)
+    parser_delete.add_argument('--storage', help="directory for keeping faces images", required=False)
     parser_delete.set_defaults(func=delete)
 
     parser_compare = subparsers.add_parser('compare', help='Compare similarity of two images')
@@ -333,6 +338,15 @@ def __main__():
     parser_compare.set_defaults(func=compare)
 
     args = parser.parse_args()
+
+    global subjects_directory
+    if getattr(args, 'storage', None) is not None:
+        subjects_directory = args.storage
+        if not os.path.exists(subjects_directory):
+            os.makedirs(subjects_directory)
+    else:
+        subjects_directory = os.path.join(os.curdir, "subjects")
+
     check_profiles()
     return args.func(args)
 
