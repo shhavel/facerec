@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
-import argparse, cv2, sys, os, math, shutil
+import argparse, cv2, sys, os, math
 from PIL import Image
 from time import sleep
 
@@ -89,6 +89,10 @@ def enroll(args):
 def identify(args):
     if not os.path.exists(args.file):
         fatal("File not found: '{0}'".format(args.file))
+    if not args.only is None:
+        only = args.only.split(',')
+    if not args.ignore is None:
+        ignore = args.ignore.split(',')
     ensure_subjects_directory()
     subjects_directory = os.path.join(os.curdir, "subjects")
     images = []
@@ -96,7 +100,7 @@ def identify(args):
     all_subjects = {}
     subject_number = 0
     for subject in os.listdir(subjects_directory):
-        if not subject.startswith('.'):
+        if not subject.startswith('.') and (args.only is None or subject in only) and (args.ignore is None or subject not in ignore):
             subject_number += 1
             all_subjects[subject_number] = subject
             directory = os.path.join(subjects_directory, subject)
@@ -297,6 +301,8 @@ def __main__():
 
     parser_identify = subparsers.add_parser('identify', help='Get the identification of a subject given image of him')
     parser_identify.add_argument('file', help='path to image file')
+    parser_identify.add_argument('--only', '--within', type=str, help='identify only from specific subjects (comma separated list of codes)')
+    parser_identify.add_argument('--ignore', '--exclude', type=str, help='ignore specific subjects (comma separated list of codes)')
     parser_identify.add_argument('--dry', action="store_true", help='output only subject and confidence number divided with space')
     parser_identify.add_argument('--debug', '-d', action="store_true", help='show faces of subjects')
     parser_identify.set_defaults(func=identify)

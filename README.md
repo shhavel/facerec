@@ -5,6 +5,7 @@ A simple face recognition command line application using Python and OpenCV.
 ## Install OpenCV-Python
 
 - [Linux installation](http://docs.opencv.org/doc/tutorials/introduction/linux_install/linux_install.html#linux-installation)
+- [Install OpenCV-Python in Fedora](http://docs.opencv.org/master/dd/dd5/tutorial_py_setup_in_fedora.html)
 - [Install OpenCV in CentOS](http://superuser.com/questions/678568/install-opencv-in-centos/725799#725799)
 
 Installation in OS X:
@@ -51,6 +52,14 @@ Returns subject code and confidence.
 
     $ facerec identify path/to/photo.jpg
 
+Ignore specific subjects:
+
+    $ facerec identify --ignore="s34,s46" path/to/photo.jpg
+
+Identifi only from specific subjects:
+
+    $ facerec identify --only="s12,s34" path/to/photo.jpg
+
 Examples:
 
     $ facerec identify test/photos/photo1.jpg
@@ -61,6 +70,8 @@ Examples:
     Face was not detected in the original image
     $ facerec identify test/photos/larry.jpg
     Unable to recognize the face
+    $ facerec identify --dry test/photos/photo2.gif
+    Dougal Mcguire 78.5389835475
 
 Get the codes of all enrolled subjects.
 
