@@ -93,6 +93,11 @@ def identify(args):
         only = args.only.split(',')
     if not args.ignore is None:
         ignore = args.ignore.split(',')
+    if not args.resize is None:
+        dims = [int(x) for x in args.resize.split(',')]
+        if len(dims) == 1:
+            dims[1] = dims[0]
+        sz = tuple(dims[:2])
     ensure_subjects_directory()
     subjects_directory = os.path.join(os.curdir, "subjects")
     images = []
@@ -107,6 +112,8 @@ def identify(args):
             for the_file in os.listdir(directory):
                 file_path = os.path.join(directory, the_file)
                 image_pil = Image.open(file_path)
+                if (args.resize is not None):
+                    image_pil = image_pil.resize(sz)
                 image = np.array(image_pil, 'uint8')
                 images.append(image)
                 labels.append(subject_number)
@@ -304,6 +311,7 @@ def __main__():
     parser_identify.add_argument('--only', '--within', type=str, help='identify only from specific subjects (comma separated list of codes)')
     parser_identify.add_argument('--ignore', '--exclude', type=str, help='ignore specific subjects (comma separated list of codes)')
     parser_identify.add_argument('--dry', action="store_true", help='output only subject and confidence number divided with space')
+    parser_identify.add_argument('--resize', type=str, help='Resize all images to specific dimensions (width,hight)')
     parser_identify.add_argument('--debug', '-d', action="store_true", help='show faces of subjects')
     parser_identify.set_defaults(func=identify)
 

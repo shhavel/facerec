@@ -66,3 +66,8 @@
     run ./facerec delete --subject "Ted"
 }
 
+@test "Invoking identify with the --resize option to resize all images before identification" {
+    run ./facerec identify --resize=100,100 test/photos/photo1.jpg
+    [ "$status" = 0 ]
+    [ "$output" = "Subject 'Ted Crilly' is recognized with confidence 80.5531490811" ]
+}
