@@ -66,3 +66,8 @@
     run ./facerec delete --subject "Ted"
 }
 
+@test "Identify subject by several images" {
+    run ./facerec identify test/photos/ted2.jpg test/photos/photo1.jpg
+    [ "$status" = 0 ]
+    [ "$output" = "Subject 'Ted Crilly' is recognized with confidence 98.2978159334" ]
+}

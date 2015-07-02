@@ -13,7 +13,7 @@ PROFILES = {
     'HAAR_FRONTALFACE_ALT2': '/usr/share/opencv/haarcascades/haarcascade_frontalface_alt2.xml'
 }
 CV2_FLAGS = cv2.cv.CV_HAAR_DO_CANNY_PRUNING | cv2.cv.CV_HAAR_FIND_BIGGEST_OBJECT
-THRESHOLD = {'min': 20, 'max': 100}
+THRESHOLD = {'min': 4, 'max': 100}
 
 # Support functions
 def error(msg):
@@ -87,8 +87,9 @@ def enroll(args):
 
 # Identify subject by image
 def identify(args):
-    if not os.path.exists(args.file):
-        fatal("File not found: '{0}'".format(args.file))
+    for image_path in args.files:
+        if not os.path.exists(image_path):
+            fatal("File not found: '{0}'".format(image_path))
     if not args.only is None:
         only = args.only.split(',')
     if not args.ignore is None:
@@ -117,27 +118,25 @@ def identify(args):
     recognizer = cv2.createLBPHFaceRecognizer()
     recognizer.train(images, np.array(labels))
 
-    predict_image_pil = Image.open(args.file).convert('L')
-    predict_image = np.array(predict_image_pil, 'uint8')
+    predict_faces = []
+    for image_path in args.files:
+        faces, image = detect_faces(image_path)
+        if len(faces):
+            (x, y, w, h) = faces[len(faces) - 1]
+            predict_faces.append(image[y: y + h, x: x + w])
 
-    faceCascade = cv2.CascadeClassifier(PROFILES['HAAR_FRONTALFACE_ALT2'])
-    side = math.sqrt(predict_image.size)
-    minlen = int(side / 20)
-    maxlen = int(side / 2)
-    faces = faceCascade.detectMultiScale(predict_image, 1.1, 4, CV2_FLAGS, (minlen, minlen), (maxlen, maxlen))
-
-    if len(faces):
-        (x, y, w, h) = faces[len(faces) - 1]
-        nbr_predicted, conf = recognizer.predict(predict_image[y: y + h, x: x + w])
-        if nbr_predicted and THRESHOLD['min'] < conf and conf < THRESHOLD['max']:
+    if len(predict_faces):
+        predictions = []
+        for predict_face in predict_faces:
+            nbr_predicted, conf = recognizer.predict(predict_face)
+            if nbr_predicted and THRESHOLD['min'] < conf and conf < THRESHOLD['max']:
+                predictions.append((nbr_predicted, conf))
+        if len(predictions):
+            nbr_predicted, conf = sorted(predictions, key=lambda p: p[1])[len(predictions) - 1]
             if args.dry:
                 print "{0} {1}".format(all_subjects[nbr_predicted], conf)
             else:
                 print "Subject '{0}' is recognized with confidence {1}".format(all_subjects[nbr_predicted], conf)
-            if args.debug:
-                cv2.imshow("Recognizing Face", predict_image[y: y + h, x: x + w])
-                cv2.waitKey(1000)
-            return 0
         else:
             print("Unable to recognize the face")
             return 2
@@ -300,7 +299,7 @@ def __main__():
     parser_enroll.set_defaults(func=enroll)
 
     parser_identify = subparsers.add_parser('identify', help='Get the identification of a subject given image of him')
-    parser_identify.add_argument('file', help='path to image file')
+    parser_identify.add_argument('files', type=str, nargs='+', help='paths to image files')
     parser_identify.add_argument('--only', '--within', type=str, help='identify only from specific subjects (comma separated list of codes)')
     parser_identify.add_argument('--ignore', '--exclude', type=str, help='ignore specific subjects (comma separated list of codes)')
     parser_identify.add_argument('--dry', action="store_true", help='output only subject and confidence number divided with space')
