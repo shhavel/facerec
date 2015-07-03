@@ -108,6 +108,9 @@ def identify(args):
                     cv2.imshow(subject, image)
                     cv2.waitKey(50)
 
+    if not len(labels):
+        fatal("Unable to identify with empty storage. Enroll few subjects first.")
+
     recognizer = cv2.createLBPHFaceRecognizer()
     recognizer.train(images, np.array(labels))
 

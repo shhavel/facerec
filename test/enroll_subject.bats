@@ -24,7 +24,7 @@
 }
 
 @test "Enroll subject to the custom storage" {
-    run ./facerec enroll --subject "Ted" --storage="/tmp/subjects" test/photos/ted1.gif test/photos/ted2.jpg
+    run ./facerec enroll --subject "Ted" --storage "/tmp/subjects" test/photos/ted1.gif test/photos/ted2.jpg
     [ "$status" = 0 ]
     [ "$output" = "Enrolled subject: 'Ted', number of faces: 2" ]
 }

@@ -78,3 +78,10 @@
     [ "${lines[0]}" = "Subject 'Ted Crilly' is recognized with confidence 98.2978159334" ]
     [ "${lines[1]}" = "Subject 'Dougal Mcguire' is recognized with confidence 78.5389835475" ]
 }
+
+@test "Attempt to identify image with empty storage (empty training data)" {
+    run ./facerec delete --subject "Ted Crilly" && ./facerec delete --subject "Dougal Mcguire" && ./facerec delete --subject "Tom"
+    run ./facerec identify test/photos/photo1.jpg
+    [ "$status" -eq 1 ]
+    [ "$output" = "facerec: error: Unable to identify with empty storage. Enroll few subjects first." ]
+}
